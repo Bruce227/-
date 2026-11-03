@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>成語圖像小挑戰</title>
+  <style>
+    :root {
+      --blue: #4c9cff;
+      --dark-blue: #2467b8;
+      --yellow: #ffd65a;
+      --orange: #ff9b54;
+      --green: #51c59c;
+      --red: #ef6170;
+      --ink: #27354a;
+      --bg: #eaf7ff;
+      --card: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 10%, #fff2a9 0 7%, transparent 7.5%),
+        radial-gradient(circle at 86% 12%, #bfeeff 0 9%, transparent 9.5%),
+        linear-gradient(180deg, #cceeff 0%, #edfaff 45%, #fff8df 100%);
+    }
+
+    .app {
+      width: min(1050px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 42px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mascot {
+      width: 64px;
+      height: 64px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      font-size: 38px;
+      background: linear-gradient(135deg, #ffe37e, #ffb85a);
+      box-shadow: 0 5px 0 #e79b35;
+      transform: rotate(-3deg);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(25px, 4vw, 36px);
+      color: var(--dark-blue);
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      margin: 5px 0 0;
+      font-weight: 700;
+      color: #55718c;
+    }
+
+    .score-box {
+      min-width: 142px;
+      padding: 12px 16px;
+      text-align: center;
+      border: 3px solid #b6e4ff;
+      border-radius: 18px;
+      background: rgba(255,255,255,.86);
+      font-weight: 800;
+      box-shadow: 0 4px 0 #b6e4ff;
+    }
+
+    .score-number {
+      color: #ee7d24;
+      font-size: 25px;
+    }
+
+    .lesson-menu {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .lesson-btn, .choice, .action-btn {
+      border: 0;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 800;
+      transition: transform .15s, box-shadow .15s, background .15s;
+    }
+
+    .lesson-btn {
+      min-height: 48px;
+      padding: 8px;
+      color: #315a7d;
+      background: white;
+      border: 2px solid #c9e9fb;
+      border-radius: 14px;
+      font-size: 15px;
+    }
+
+    .lesson-btn:hover, .choice:hover, .action-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .lesson-btn.active {
+      color: white;
+      background: var(--blue);
+      border-color: var(--blue);
+      box-shadow: 0 4px 0 var(--dark-blue);
+    }
+
+    .quiz-card {
+      overflow: hidden;
+      background: rgba(255,255,255,.95);
+      border: 3px solid #d3edf9;
+      border-radius: 28px;
+      box-shadow: 0 10px 25px rgba(48, 116, 160, .13);
+    }
+
+    .progress-area {
+      padding: 16px 22px 10px;
+      background: #f7fcff;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-weight: 800;
+      color: #54718b;
+    }
+
+    .progress-track {
+      height: 13px;
+      margin-top: 10px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #dceef8;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #5fc5ff, #59d59b);
+      transition: width .35s ease;
+    }
+
+    .quiz-content {
+      display: grid;
+      grid-template-columns: minmax(280px, .9fr) minmax(300px, 1.1fr);
+      gap: 26px;
+      align-items: center;
+      padding: 25px;
+    }
+
+    .scene {
+      position: relative;
+      min-height: 310px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 24px;
+      border: 4px solid #c4e8ff;
+      background: linear-gradient(180deg, #9ee1ff 0%, #d8f5ff 62%, #bde89d 63%, #8fcf75 100%);
+    }
+
+    .cloud {
+      position: absolute;
+      color: white;
+      opacity: .9;
+      font-size: 42px;
+      top: 18px;
+    }
+
+    .cloud.left { left: 20px; }
+    .cloud.right { right: 20px; top: 65px; font-size: 31px; }
+
+    .scene-art {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      padding: 14px;
+      display: grid;
+      place-items: center;
+    }
+
+    .scene-image {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      transform: scale(var(--art-scale, 1));
+      transform-origin: center;
+      transition: transform .2s ease;
+      filter: drop-shadow(0 7px 5px rgba(39, 104, 74, .18));
+    }
+
+    .image-controls {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 12px;
+      color: #55718c;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .image-controls input { accent-color: var(--blue); flex: 1; }
+
+    .question-label {
+      display: inline-block;
+      margin-bottom: 9px;
+      color: #e5761a;
+      font-weight: 900;
+      font-size: 17px;
+    }
+
+    .question {
+      margin: 0 0 18px;
+      color: #224d78;
+      font-size: clamp(24px, 3.2vw, 32px);
+      line-height: 1.35;
+    }
+
+    .instruction {
+      margin: -8px 0 18px;
+      color: #6e8497;
+      font-weight: 700;
+    }
+
+    .choices {
+      display: grid;
+      gap: 11px;
+    }
+
+    .choice {
+      width: 100%;
+      padding: 15px 16px;
+      text-align: left;
+      color: #34516b;
+      background: #fff;
+      border: 2px solid #d7e9f5;
+      border-radius: 15px;
+      font-size: 18px;
+    }
+
+    .choice:hover { background: #f0f9ff; border-color: #81c8f5; }
+
+    .choice.correct {
+      color: #147551;
+      background: #dff9e9;
+      border-color: #54c68f;
+    }
+
+    .choice.wrong {
+      color: #ad3b48;
+      background: #ffe5e8;
+      border-color: #ef8791;
+      animation: shake .28s linear;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-7px); }
+      75% { transform: translateX(7px); }
+    }
+
+    .hint {
+      display: none;
+      margin-top: 17px;
+      padding: 15px;
+      border: 2px dashed #ffb04f;
+      border-radius: 15px;
+      background: #fff8df;
+      color: #855211;
+      line-height: 1.65;
+      font-weight: 700;
+    }
+
+    .hint.show { display: block; }
+
+    .result {
+      display: none;
+      padding: 48px 22px;
+      text-align: center;
+    }
+
+    .result.show { display: block; }
+
+    .result-icon { font-size: 82px; }
+
+    .result h2 {
+      margin: 8px 0;
+      color: var(--dark-blue);
+      font-size: 34px;
+    }
+
+    .result p {
+      margin: 0 0 21px;
+      color: #52708d;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .action-btn {
+      padding: 14px 22px;
+      color: white;
+      background: linear-gradient(180deg, #5dc0ff, #348de2);
+      border-radius: 15px;
+      box-shadow: 0 4px 0 #236eaf;
+      font-size: 18px;
+    }
+
+    .action-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #236eaf; }
+
+    .footer-note {
+      margin: 16px 0 0;
+      text-align: center;
+      color: #638198;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 780px) {
+      header { align-items: flex-start; }
+      .score-box { min-width: 105px; }
+      .lesson-menu { grid-template-columns: repeat(3, 1fr); }
+      .lesson-menu .lesson-btn:last-child { grid-column: span 3; }
+      .quiz-content { grid-template-columns: 1fr; padding: 16px; }
+      .scene { min-height: 230px; }
+    }
+
+    @media (max-width: 460px) {
+      .app { width: min(100% - 16px, 1050px); }
+      header { gap: 8px; }
+      .mascot { width: 50px; height: 50px; font-size: 30px; }
+      .subtitle { font-size: 13px; }
+      .score-box { padding: 9px; font-size: 13px; }
+      .lesson-menu { gap: 6px; }
+      .lesson-btn { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <div class="mascot">🦉</div>
+        <div>
+          <h1>成語圖像小挑戰</h1>
+          <p class="subtitle">看圖選成語，答錯也別怕！提示會幫助你再試一次。</p>
+        </div>
+      </div>
+      <div class="score-box">
+        得分<br>
+        <span class="score-number" id="score">0</span>
+        <span id="scoreTotal">/ 9</span>
+      </div>
+    </header>
+
+    <nav class="lesson-menu" id="lessonMenu"></nav>
+
+    <section class="quiz-card">
+      <div id="quizArea">
+        <div class="progress-area">
+          <div class="progress-info">
+            <span id="lessonTitle">第一課</span>
+            <span id="progressText">第 1 題 / 共 9 題</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <div class="quiz-content">
+          <div class="scene" aria-label="成語情境插圖">
+            <span class="cloud left">☁️</span>
+            <span class="cloud right">☁️</span>
+            <div class="scene-art">
+              <img class="scene-image" id="sceneImage" alt="成語情境插圖" />
+            </div>
+          </div>
+
+          <div>
+            <span class="question-label">看圖完成成語填充題</span>
+            <h2 class="question">請選出最適合填入句子的成語。</h2>
+            <p class="instruction">仔細讀題，再參考插圖選出答案。</p>
+            <div class="choices" id="choices"></div>
+            <div class="hint" id="hint"></div>
+            <label class="image-controls" for="imageScale">插圖大小
+              <input id="imageScale" type="range" min="75" max="130" value="100" aria-label="調整插圖大小" />
+              <span id="imageScaleValue">100%</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="result" id="resultArea">
+        <div class="result-icon">🏆</div>
+        <h2 id="resultTitle">挑戰完成！</h2>
+        <p id="resultText"></p>
+        <button class="action-btn" id="retryBtn">再測驗一次</button>
+      </div>
+    </section>
+
+    <p class="footer-note">每次開始測驗時，題目與選項順序都會重新隨機排列。</p>
+  </main>
+
+  <script>
+    const lessons = [
+      {
+        name: "第一課",
+        items: [
+          ["全力以赴","用全部的力量去做一件事。","🏃‍♀️💨🏁","小美為了接力賽，全力衝向終點。"],
+          ["驚慌失措","因為害怕或緊張，不知道該怎麼辦。","😱🔥🧯","教室突然冒煙，大家一時不知道該怎麼做。"],
+          ["喜不自禁","高興得控制不住自己的情緒。","🥳🎁🤗","小安得到期待很久的禮物，高興得跳了起來。"],
+          ["大聲疾呼","大聲急切地呼喊，希望大家注意。","📣🚸👧👦","看見同學靠近危險地方，小明趕緊大聲提醒。"],
+          ["死灰復燃","已經消失的事物又重新出現。","🔥🪵😮","已經撲滅的火堆，又冒出了火苗。"],
+          ["碩果僅存","經過淘汰或變化後，僅剩下少數珍貴的事物。","🌳🍎✨","果園收成後，只剩下一顆最珍貴的蘋果。"],
+          ["集思廣益","集合大家的想法，讓事情做得更好。","👧💡👦💡👧","全班圍在一起討論園遊會的好點子。"],
+          ["寄人籬下","依靠別人生活，沒有自己的依靠。","🏠🧳😔","小男孩暫時住在親戚家，需要依靠別人照顧。"],
+          ["赴湯蹈火","不怕危險，勇敢地去做事情。","🧑‍🚒🔥🚒","消防員不怕危險，勇敢進入火場救人。"]
+        ]
+      },
+      {
+        name: "第二課",
+        items: [
+          ["無聲無息","沒有聲音，也沒有消息。","🌙🐱👣","小貓在夜裡安靜走過，完全沒有聲音。"],
+          ["腳踏實地","做事認真實在，不投機取巧。","👧📚✏️","小芸每天認真複習功課，不想用作弊的方法。"],
+          ["德高望重","品德高尚，受到大家的尊敬。","👴🌷🙇","大家都尊敬這位常常幫助別人的老校長。"],
+          ["微乎其微","非常微小，幾乎可以忽略不計。","🔍🐜🤏","放大鏡下的小螞蟻，看起來非常微小。"],
+          ["哀鴻遍野","到處都是受苦受難、無家可歸的人。","🌧️🏚️😢","風災過後，許多人失去家園，等待幫助。"],
+          ["抱殘守缺","守著舊有的東西，不願意改變或接受新事物。","📻🔒💻","爺爺只想使用壞掉的老收音機，不願試試新工具。"],
+          ["同流合污","跟壞人一起做壞事。","😈🤝😈","小明本來知道不對，卻跟著同學欺負別人。"],
+          ["當機立斷","遇到事情時，能夠立刻做出決定。","🚦🤔➡️","遇到緊急情況，隊長立刻決定帶大家離開。"]
+        ]
+      },
+      {
+        name: "第三課",
+        items: [
+          ["堅定不移","意志堅定，絕不改變。","🧗‍♀️⛰️💪","小婷決心爬上山頂，不因下雨而放棄。"],
+          ["疾風勁草","經過困難考驗，才能看出一個人的堅強。","💨🌿⛈️","強風吹過後，堅韌的小草依然挺立著。"],
+          ["隱惡揚善","隱藏別人的缺點，宣揚別人的優點。","🤫💖👏","老師不公開小杰的失誤，並稱讚他的努力。"],
+          ["暗箭傷人","暗中用不正當的手段傷害別人。","😠🏹🌳","有人躲在樹後，用不公平的方法讓對手失敗。"],
+          ["適可而止","做事情要適量，到了適當程度就停止。","🍰✋😊","小華很喜歡蛋糕，但吃到適量就停下來。"],
+          ["羽毛未豐","比喻還沒有成熟，能力還不夠強。","🐦🪺🌱","小鳥的翅膀還沒長好，暫時不能高飛。"],
+          ["百折不撓","遇到很多挫折，仍然不放棄。","🚴‍♀️💪🌧️","小志跌倒很多次，仍然練習騎腳踏車。"]
+        ]
+      },
+      {
+        name: "第四課",
+        items: [
+          ["任勞任怨","不怕辛苦，也不怕受到別人的埋怨。","🧹💪🌟","志工默默打掃校園，不怕辛苦也不抱怨。"],
+          ["養精蓄銳","養足精神，儲存力量，準備迎接挑戰。","😴🔋🏃","比賽前，小安早睡休息，準備明天全力出發。"],
+          ["飲水思源","享受成果時，不忘記幫助過自己的人。","💧🙏👵","喝著乾淨的水，小美感謝辛苦鋪設水管的人。"],
+          ["養尊處優","生活在優越的環境中，不必吃苦。","👑🛋️🍰","小王子生活舒服，從來不需要自己做家事。"],
+          ["義正辭嚴","理由正當，說話態度嚴正有力。","👩‍🏫☝️⚖️","班長嚴正地說明，不能因為好玩就破壞公物。"],
+          ["汗馬功勞","比喻辛苦努力所立下的重大功績。","🏅🐎💪","隊員辛苦訓練，為班級贏得冠軍立下大功。"],
+          ["怨聲載道","到處都是抱怨和不滿的聲音。","😫📢😠","大家都抱怨停電太久，四處傳來不滿的聲音。"]
+        ]
+      },
+      {
+        name: "第五課",
+        items: [
+          ["堅毅不拔","意志堅強，不會因為困難而動搖。","🌱🪨💪","小樹從石縫中努力生長，不怕困難。"],
+          ["沽名釣譽","故意做一些事情來獲得名聲和稱讚。","📸🎭🏆","有人只為了拍照被稱讚，假裝幫忙做事。"],
+          ["當務之急","目前最重要、最需要趕快處理的事情。","🚰💧🔧","水管破了，現在最重要的是先把水管修好。"],
+          ["三令五申","一再地提醒和告誡。","👩‍🏫📣🔁","老師多次提醒大家：走廊上不能奔跑。"],
+          ["歷歷在目","過去發生的事情，清楚地出現在眼前。","🖼️💭✨","看見舊照片，畢業旅行的回憶又清楚浮現。"],
+          ["出奇制勝","用別人意想不到的方法取得勝利。","♟️💡🏆","比賽時，隊伍用特別的新方法贏得勝利。"],
+          ["橫行霸道","仗著勢力欺負別人，做事蠻橫不講理。","😤👑🚫","大孩子仗著力氣大，強搶別人的玩具。"]
+        ]
+      },
+      {
+        name: "第六課",
+        items: [
+          ["脫穎而出","才能表現突出，從眾人之中顯露出來。","🌟👧🏅","許多選手中，小芸的表現特別優秀。"],
+          ["精益求精","已經很好了，還希望做得更加完美。","🎨✨🔍","畫得很好後，小安仍仔細修改每一個細節。"],
+          ["引經據典","說話或寫文章時，引用經典和資料作為根據。","📖🗣️📚","小明發表時，引用書中的資料來支持想法。"],
+          ["責無旁貸","自己應該負起的責任，不能推給別人。","🧑‍✈️✅🫡","身為班長，小華主動負責安排班級工作。"],
+          ["孤掌難鳴","一個人力量有限，做事情需要別人幫忙。","👏1️⃣🤝","一個人很難完成大型活動，需要大家合作。"],
+          ["漸入佳境","情況逐漸變好，越來越順利。","📈🌈😊","經過練習後，合唱團的表演越來越好。"],
+          ["上行下效","上面的人怎麼做，下面的人就跟著模仿。","👩‍🏫➡️👧👦","老師先把垃圾分類，學生也跟著一起做。"],
+          ["以貌取人","只憑外表來判斷一個人。","👕🤔💖","小美發現不能只看衣服，就判斷一個人的好壞。"]
+        ]
+      }
+    ];
+
+    const fillQuestions = [
+      "哥哥參加馬拉松比賽，即使已經很累了，仍然（　　　　）地衝向終點。",
+      "小明考試時發現鉛筆盒不見了，顯得（　　　　），急得東找西找，不知道該怎麼辦。",
+      "小美收到夢想已久的禮物後，（　　　　）地跳了起來。",
+      "老師為了呼籲大家重視環保，不斷向全校同學宣導，可說是（　　　　）。",
+      "原本已經消失的不良風氣最近又再度出現，真是（　　　　）。",
+      "許多老字號店家都歇業了，這家百年糕餅店成了（　　　　）的老店。",
+      "班上討論校外教學地點時，同學們（　　　　），提出許多好點子。",
+      "小華長期寄住在親戚家，心中有種（　　　　）的感受。",
+      "消防員為了搶救受困民眾，不惜冒著生命危險，可說是（　　　　）。",
+      "自從搬家後，那位同學就（　　　　），一直沒有任何消息。",
+      "哥哥做事認真負責，凡事都（　　　　），不會投機取巧。",
+      "老校長品德高尚、待人和善，是大家公認（　　　　）的人物。",
+      "一粒沙子掉進海灘裡，影響實在（　　　　）。",
+      "戰爭過後，到處都是流離失所的災民，景象十分（　　　　）。",
+      "如果一直堅持舊方法，不願接受新觀念，就是（　　　　）。",
+      "明知同學做錯事，卻跟著一起做，這種行為是（　　　　）。",
+      "火警發生時，隊長立刻決定疏散人群，表現出（　　　　）的能力。",
+      "小美立定志向成為醫師，多年來（　　　　），從未改變心意。",
+      "面對接連而來的困難，他依然不屈不撓，真像（　　　　）一般。",
+      "小傑總是稱讚同學的優點，包容同學的缺點，做到了（　　　　）。",
+      "有人故意在背後散播謠言中傷別人，這種行為叫做（　　　　）。",
+      "吃零食要懂得（　　　　），否則容易影響健康。",
+      "這支新成立的球隊經驗不足，可以說是（　　　　）。",
+      "小明雖然多次比賽失利，仍然持續努力練習，展現（　　　　）的精神。",
+      "清潔隊員每天辛苦工作，卻毫無怨言，真是（　　　　）。",
+      "比賽前夕，選手們正在（　　　　），準備迎接挑戰。",
+      "我們今天的幸福生活來自前人的努力，因此要懂得（　　　　）。",
+      "那位富家子弟從小衣食無缺，過著（　　　　）的生活。",
+      "班長據理力爭地指出不公平現象，態度十分（　　　　）。",
+      "球隊能夠奪冠，全靠隊員們的（　　　　）。",
+      "新制度推行後問題不斷，引起民眾（　　　　）。",
+      "登山隊在惡劣天氣中依然勇敢前進，展現出（　　　　）的精神。",
+      "有些人做善事只是為了博取名聲，這種行為叫做（　　　　）。",
+      "學期末快到了，準備期末考是大家的（　　　　）。",
+      "老師一再叮嚀同學遵守交通規則，可說是（　　　　）。",
+      "去年的畢業旅行情景至今仍清楚浮現在眼前，令人覺得（　　　　）。",
+      "教練臨時改變戰術，讓對手措手不及，成功（　　　　）。",
+      "那群惡霸喜歡欺負弱小，行為十分（　　　　）。",
+      "小婷經過多年努力，終於從眾多參賽者中（　　　　）。",
+      "這篇作文已經非常出色了，但小華仍反覆修改，真是（　　　　）。",
+      "老師經常引用歷史故事和名人名言來說明道理，可說是（　　　　）。",
+      "維護教室整潔是每位同學的責任，大家都（　　　　）。",
+      "一個人想完成大型活動十分困難，因為（　　　　）。",
+      "經過半年的努力，班上的閱讀風氣越來越好，可說是（　　　　）。",
+      "校長做事認真守規矩，老師和學生也紛紛效法，這正是（　　　　）。",
+      "只根據外表就判斷一個人的能力，是一種（　　　　）的行為。"
+    ];
+
+    let fillQuestionIndex = 0;
+    const allItems = lessons.flatMap(lesson =>
+      lesson.items.map(item => ({
+        idiom: item[0],
+        meaning: item[1],
+        scene: item[2],
+        example: item[3],
+        prompt: fillQuestions[fillQuestionIndex++],
+        lesson: lesson.name
+      }))
+    );
+
+    let selectedLesson = 0;
+    let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let alreadyAnswered = false;
+
+    const lessonMenu = document.getElementById("lessonMenu");
+    const scoreEl = document.getElementById("score");
+    const scoreTotalEl = document.getElementById("scoreTotal");
+    const lessonTitle = document.getElementById("lessonTitle");
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
+    const sceneImage = document.getElementById("sceneImage");
+    const imageScale = document.getElementById("imageScale");
+    const imageScaleValue = document.getElementById("imageScaleValue");
+    const choicesEl = document.getElementById("choices");
+    const hintEl = document.getElementById("hint");
+    const quizArea = document.getElementById("quizArea");
+    const resultArea = document.getElementById("resultArea");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultText = document.getElementById("resultText");
+    const retryBtn = document.getElementById("retryBtn");
+
+    // 壓縮檔中的檔名和成語完全對應；唯一例外是「同流合汙」採用舊字形。
+    const imageFileNames = { "同流合污": "同流合汙.png" };
+
+    function imagePath(idiom) {
+      return `images/${encodeURIComponent(imageFileNames[idiom] || `${idiom}.png`)}`;
+    }
+
+    function shuffle(array) {
+      const copied = [...array];
+      for (let i = copied.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copied[i], copied[j]] = [copied[j], copied[i]];
+      }
+      return copied;
+    }
+
+    function renderLessonMenu() {
+      lessonMenu.innerHTML = "";
+
+      lessons.forEach((lesson, index) => {
+        const button = document.createElement("button");
+        button.className = `lesson-btn ${index === selectedLesson ? "active" : ""}`;
+        button.textContent = lesson.name;
+        button.addEventListener("click", () => {
+          selectedLesson = index;
+          startQuiz();
+        });
+        lessonMenu.appendChild(button);
+      });
+
+      const allButton = document.createElement("button");
+      allButton.className = `lesson-btn ${selectedLesson === -1 ? "active" : ""}`;
+      allButton.textContent = "全部 46 題";
+      allButton.addEventListener("click", () => {
+        selectedLesson = -1;
+        startQuiz();
+      });
+      lessonMenu.appendChild(allButton);
+    }
+
+    function buildQuestions(items) {
+      return shuffle(items).map(question => {
+        const wrongChoices = shuffle(
+          allItems.filter(item => item.idiom !== question.idiom)
+        ).slice(0, 3);
+
+        return {
+          ...question,
+          options: shuffle([question, ...wrongChoices])
+        };
+      });
+    }
+
+    function startQuiz() {
+      const sourceItems = selectedLesson === -1
+        ? allItems
+        : allItems.filter(item => item.lesson === lessons[selectedLesson].name);
+
+      questions = buildQuestions(sourceItems);
+      currentIndex = 0;
+      score = 0;
+      renderLessonMenu();
+      quizArea.style.display = "block";
+      resultArea.classList.remove("show");
+      updateQuestion();
+    }
+
+    function updateQuestion() {
+      alreadyAnswered = false;
+      const question = questions[currentIndex];
+      const total = questions.length;
+
+      scoreEl.textContent = score;
+      scoreTotalEl.textContent = `/ ${total}`;
+      lessonTitle.textContent = selectedLesson === -1 ? "全部成語挑戰" : lessons[selectedLesson].name;
+      progressText.textContent = `第 ${currentIndex + 1} 題 / 共 ${total} 題`;
+      progressFill.style.width = `${(currentIndex / total) * 100}%`;
+
+      sceneImage.src = imagePath(question.idiom);
+      sceneImage.alt = `${question.idiom} 的情境插圖`;
+      imageScale.value = 100;
+      imageScaleValue.textContent = "100%";
+      document.documentElement.style.setProperty("--art-scale", "1");
+      document.querySelector(".question").textContent = question.prompt;
+      hintEl.className = "hint";
+      hintEl.innerHTML = "";
+
+      choicesEl.innerHTML = "";
+      question.options.forEach((option) => {
+        const button = document.createElement("button");
+        button.className = "choice";
+        button.textContent = option.idiom;
+        button.addEventListener("click", () => checkAnswer(button, option.idiom));
+        choicesEl.appendChild(button);
+      });
+    }
+
+    function checkAnswer(button, chosenIdiom) {
+      if (alreadyAnswered) return;
+
+      const question = questions[currentIndex];
+
+      if (chosenIdiom === question.idiom) {
+        alreadyAnswered = true;
+        score++;
+        scoreEl.textContent = score;
+        button.classList.add("correct");
+
+        setTimeout(() => {
+          currentIndex++;
+          if (currentIndex < questions.length) {
+            updateQuestion();
+          } else {
+            showResult();
+          }
+        }, 700);
+
+      } else {
+        button.classList.remove("wrong");
+        void button.offsetWidth;
+        button.classList.add("wrong");
+
+        hintEl.innerHTML = `
+          <strong>💡 小提示：</strong>${question.idiom} 的意思是「${question.meaning}」<br>
+          <span style="font-size: 14px;">生活例子：${question.example}</span>
+        `;
+        hintEl.classList.add("show");
+      }
+    }
+
+    function showResult() {
+      quizArea.style.display = "none";
+      resultArea.classList.add("show");
+      progressFill.style.width = "100%";
+
+      const total = questions.length;
+      resultTitle.textContent = score === total ? "太厲害了，全部答對！" : "挑戰完成！";
+      resultText.textContent = `你答對了 ${score} 題，共 ${total} 題。再玩一次，讓成語記得更牢！`;
+    }
+
+    retryBtn.addEventListener("click", startQuiz);
+    imageScale.addEventListener("input", () => {
+      const scale = imageScale.value / 100;
+      document.documentElement.style.setProperty("--art-scale", scale);
+      imageScaleValue.textContent = `${imageScale.value}%`;
+    });
+
+    startQuiz();
+  </script>
+</body>
+</html>
