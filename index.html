@@ -116,8 +116,11 @@
       font-size: 15px;
     }
 
-    .lesson-btn:hover, .choice:hover, .action-btn:hover {
-      transform: translateY(-2px);
+    /* 手機瀏覽器會把 :hover 保留在最後點選的按鈕上，因此只在有滑鼠的裝置啟用。 */
+    @media (hover: hover) {
+      .lesson-btn:hover, .choice:hover, .action-btn:hover {
+        transform: translateY(-2px);
+      }
     }
 
     .lesson-btn.active {
@@ -264,7 +267,18 @@
       font-size: 18px;
     }
 
-    .choice:hover { background: #f0f9ff; border-color: #81c8f5; }
+    @media (hover: hover) {
+      .choice:hover { background: #f0f9ff; border-color: #81c8f5; }
+    }
+
+    /* 保留鍵盤操作的焦點提示，避免觸控後留下系統的藍色點按框。 */
+    .lesson-btn, .choice, .action-btn { -webkit-tap-highlight-color: transparent; }
+    .lesson-btn:focus:not(:focus-visible),
+    .choice:focus:not(:focus-visible),
+    .action-btn:focus:not(:focus-visible) { outline: none; }
+    .lesson-btn:focus-visible,
+    .choice:focus-visible,
+    .action-btn:focus-visible { outline: 3px solid #2467b8; outline-offset: 3px; }
 
     .choice.correct {
       color: #147551;
@@ -683,7 +697,11 @@
         const button = document.createElement("button");
         button.className = "choice";
         button.textContent = option.idiom;
-        button.addEventListener("click", () => checkAnswer(button, option.idiom));
+        button.addEventListener("click", (event) => {
+          // event.detail 為 0 表示鍵盤操作，保留鍵盤焦點；觸控／滑鼠則移除焦點。
+          if (event.detail !== 0) button.blur();
+          checkAnswer(button, option.idiom);
+        });
         choicesEl.appendChild(button);
       });
     }
